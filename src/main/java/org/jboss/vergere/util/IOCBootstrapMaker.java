@@ -17,8 +17,6 @@
 package org.jboss.vergere.util;
 
 
-import org.jboss.errai.codegen.util.ClassChangeUtil;
-import org.jboss.errai.common.client.framework.Assert;
 import org.jboss.errai.common.metadata.RebindUtils;
 import org.jboss.vergere.bootstrapper.IOCBootstrapGenerator;
 import org.jboss.vergere.bootstrapper.QualifierEqualityFactoryGenerator;
@@ -29,7 +27,6 @@ import org.jboss.vergere.client.QualifierUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Set;
 
 /**
  * @author Mike Brock <cbrock@redhat.com>

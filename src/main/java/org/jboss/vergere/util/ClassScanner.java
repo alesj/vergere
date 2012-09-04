@@ -5,7 +5,6 @@ import org.jboss.errai.codegen.meta.MetaClassFactory;
 import org.jboss.errai.codegen.meta.MetaField;
 import org.jboss.errai.codegen.meta.MetaMethod;
 import org.jboss.errai.codegen.meta.MetaParameter;
-
 import org.jboss.errai.common.metadata.ScannerSingleton;
 import org.mvel2.util.NullType;
 

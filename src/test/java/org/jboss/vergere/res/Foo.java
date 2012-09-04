@@ -3,6 +3,7 @@ package org.jboss.vergere.res;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
 /**
  * @author Mike Brock
@@ -10,9 +11,11 @@ import javax.enterprise.context.Dependent;
 @Dependent
 public class Foo {
 
+  @Inject Bar bar;
+
   @PostConstruct
   private void testPostConstruct() {
-    System.out.println("Hello, World!");
+    System.out.println("Hello, World! -- I Have an injected Bar! " + bar.getName());
   }
 
   @PreDestroy
