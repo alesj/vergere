@@ -1,5 +1,6 @@
 package org.jboss.vergere.res;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
 /**
@@ -7,4 +8,9 @@ import javax.enterprise.context.ApplicationScoped;
  */
 @ApplicationScoped
 public class Foo {
+
+  @PostConstruct
+  private void testPostConstruct() {
+    System.out.println("Hello, World!");
+  }
 }
