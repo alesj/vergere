@@ -28,8 +28,6 @@ public class Container {
 
   public void bootstrapContainer() {
     try {
-
-
       new IOCBeanManagerLifecycle().resetBeanManager();
 
       System.out.println("Vergere bootstrapper successfully initialized.");
@@ -42,22 +40,10 @@ public class Container {
       System.out.println("Vergere container bootstrapped.");
 
       injectionContext.getRootContext().finish();
-      System.out.println(injectionContext.getRootContext().getAllCreatedBeans().size() + " beans successfully deployed.");
     }
     catch (Throwable t) {
       t.printStackTrace();
       throw new RuntimeException("critical error in IOC container bootstrap", t);
     }
-  }
-
-
-  private static String annotationsToString(final Annotation[] annotations) {
-    final StringBuilder sb = new StringBuilder("[");
-    for (int i = 0; i < annotations.length; i++) {
-      sb.append(annotations[i].annotationType().getName());
-
-      if (i + 1 < annotations.length) sb.append(", ");
-    }
-    return sb.toString();
   }
 }
