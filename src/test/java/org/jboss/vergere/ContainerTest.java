@@ -16,14 +16,14 @@ public class ContainerTest {
   }
 
   @Test
-  public void testContainer() {
-    try {
-      Foo foo = IOC.getBeanManager().lookupBean(Foo.class).getInstance();
+  public void testSimpleBean() {
+    Foo foo = IOC.getBeanManager().lookupBean(Foo.class).getInstance();
+    System.out.println("foo:" + foo);
+  }
 
-      System.out.println("foo:" + foo);
-    }
-    catch (Throwable t) {
-      t.printStackTrace();
-    }
+  @Test
+  public void testSimpleBeanDestroy() {
+    Foo foo = IOC.getBeanManager().lookupBean(Foo.class).getInstance();
+    IOC.getBeanManager().destroyBean(foo);
   }
 }
