@@ -15,7 +15,7 @@ public class Foo {
 
   @PostConstruct
   private void testPostConstruct() {
-    System.out.println("Hello, World! -- I Have an injected Bar! " + bar.getName());
+    System.out.println("Hello, World! -- I Have an injected Bar! " + bar.getName() + "; which cycles on itself (" + bar.getBar().getName() + ")");
   }
 
   @PreDestroy
