@@ -40,9 +40,6 @@ import org.jboss.errai.codegen.util.PrivateAccessType;
 import org.jboss.errai.codegen.util.PrivateAccessUtil;
 import org.jboss.errai.codegen.util.Refs;
 import org.jboss.errai.codegen.util.Stmt;
-import org.jboss.errai.common.metadata.MetaDataScanner;
-import org.jboss.errai.common.metadata.RebindUtils;
-import org.jboss.errai.common.metadata.ScannerSingleton;
 import org.jboss.vergere.client.Bootstrapper;
 import org.jboss.vergere.client.BootstrapperInjectionContext;
 import org.jboss.vergere.client.api.CodeDecorator;
@@ -60,6 +57,7 @@ import org.jboss.vergere.metadata.QualifyingMetadataFactory;
 import org.jboss.vergere.util.ClassScanner;
 import org.jboss.vergere.util.EnvUtil;
 import org.jboss.vergere.util.IOCBootstrapMaker;
+import org.jboss.vergere.util.MetaDataScanner;
 import org.jboss.vergere.util.ReachableTypes;
 import org.jboss.vergere.util.ThreadUtil;
 import org.jboss.vergere.util.VergereUtils;
@@ -233,7 +231,7 @@ public class IOCBootstrapGenerator {
     final InjectionContext.Builder injectionContextBuilder
         = InjectionContext.Builder.create();
 
-    final MetaDataScanner scanner = ScannerSingleton.getOrCreateInstance();
+    final MetaDataScanner scanner = ClassScanner.getScanner();
     final Properties props = scanner.getProperties("vergere.properties");
 
     if (props != null) {
@@ -371,7 +369,7 @@ public class IOCBootstrapGenerator {
                                        final List<MetaClass> beforeTasks,
                                        final List<MetaClass> afterTasks) {
 
-    final MetaDataScanner scanner = ScannerSingleton.getOrCreateInstance();
+    final MetaDataScanner scanner = ClassScanner.getScanner();
 
     /*
     * IOCDecoratorExtension.class

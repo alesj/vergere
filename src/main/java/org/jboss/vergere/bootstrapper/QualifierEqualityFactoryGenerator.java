@@ -22,12 +22,11 @@ import org.jboss.errai.codegen.util.Arith;
 import org.jboss.errai.codegen.util.If;
 import org.jboss.errai.codegen.util.Refs;
 import org.jboss.errai.codegen.util.Stmt;
-import org.jboss.errai.common.metadata.MetaDataScanner;
-import org.jboss.errai.common.metadata.RebindUtils;
-import org.jboss.errai.common.metadata.ScannerSingleton;
 import org.jboss.vergere.client.AnnotationComparator;
 import org.jboss.vergere.client.QualifierEqualityFactory;
 import org.jboss.vergere.client.QualifierUtil;
+import org.jboss.vergere.util.ClassScanner;
+import org.jboss.vergere.util.MetaDataScanner;
 import org.jboss.vergere.util.VergereUtils;
 
 import javax.enterprise.util.Nonbinding;
@@ -78,7 +77,7 @@ public class QualifierEqualityFactoryGenerator {
 
     final ConstructorBlockBuilder<? extends ClassStructureBuilder<?>> constrBuilder = builder.publicConstructor();
 
-    final MetaDataScanner scanner = ScannerSingleton.getOrCreateInstance();
+    final MetaDataScanner scanner = ClassScanner.getScanner();
     final Set<Class<?>> typesAnnotatedWith = scanner.getTypesAnnotatedWith(Qualifier.class);
 
     for (final Class<?> aClass : typesAnnotatedWith) {

@@ -10,12 +10,12 @@ import javax.inject.Inject;
  */
 @Dependent
 public class Foo {
-
   @Inject Bar bar;
 
   @PostConstruct
   private void testPostConstruct() {
-    System.out.println("Hello, World! -- I Have an injected Bar! " + bar.getName() + "; which cycles on itself (" + bar.getBar().getName() + ")");
+    System.out.println("Hello, World! -- I have an injected Bar! " + bar.getName()
+        + "; which cycles on itself (" + bar.getBar().getName() + ")");
   }
 
   @PreDestroy

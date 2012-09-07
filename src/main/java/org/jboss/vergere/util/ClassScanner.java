@@ -5,7 +5,6 @@ import org.jboss.errai.codegen.meta.MetaClassFactory;
 import org.jboss.errai.codegen.meta.MetaField;
 import org.jboss.errai.codegen.meta.MetaMethod;
 import org.jboss.errai.codegen.meta.MetaParameter;
-import org.jboss.errai.common.metadata.ScannerSingleton;
 import org.mvel2.util.NullType;
 
 import java.lang.annotation.Annotation;
@@ -23,15 +22,24 @@ import java.util.regex.Pattern;
  * @author Mike Brock
  */
 public final class ClassScanner {
-  private static final MetaDataScanner scanner = new MetaDataScanner(MetaDataScanner.getConfigUrls());
+  private static final MetaDataScanner scanner;
+
+  static {
+    if (!VergereUtils.hasClasspathChanged() && VergereUtils.cacheFileExists("reflections.cache")) {
+      System.out.println("Classpath hasn't changed.");
+      scanner = new MetaDataScanner(MetaDataScanner.getConfigUrls(), VergereUtils.getCacheFile("reflections.cache"));
+    }
+    else {
+      System.out.println("Classpath has changed.");
+      scanner = new MetaDataScanner(MetaDataScanner.getConfigUrls(), null);
+    }
+  }
 
   private ClassScanner() {
   }
 
   public static Collection<MetaParameter> getParametersAnnotatedWith(final Class<? extends Annotation> annotation,
                                                                      final Set<String> packages) {
-
-    long tm = System.currentTimeMillis();
 
     final Collection<MetaParameter> result = new HashSet<MetaParameter>();
     for (final MetaClass metaClass : MetaClassFactory.getAllCachedClasses()) {
@@ -58,18 +66,18 @@ public final class ClassScanner {
                                                             final String excludeRegEx) {
 
     final Collection<MetaClass> result = Collections.newSetFromMap(new ConcurrentHashMap<MetaClass, Boolean>());
-
-    final Future<?> factoryFuture = ThreadUtil.submit(new Runnable() {
-      @Override
-      public void run() {
-
-        for (final MetaClass metaClass : MetaClassFactory.getAllCachedClasses()) {
-          if (metaClass.isAnnotationPresent(annotation)) {
-            result.add(metaClass);
-          }
-        }
-      }
-    });
+//
+//    final Future<?> factoryFuture = ThreadUtil.submit(new Runnable() {
+//      @Override
+//      public void run() {
+//
+//        for (final MetaClass metaClass : MetaClassFactory.getAllCachedClasses()) {
+//          if (metaClass.isAnnotationPresent(annotation)) {
+//            result.add(metaClass);
+//          }
+//        }
+//      }
+//    });
 
     final Future<?> reflectionsFuture = ThreadUtil.submit(new Runnable() {
       @Override
@@ -81,7 +89,7 @@ public final class ClassScanner {
     });
 
     try {
-      factoryFuture.get();
+//      factoryFuture.get();
       reflectionsFuture.get();
     }
     catch (Exception ignored) {
@@ -151,25 +159,25 @@ public final class ClassScanner {
     final MetaClass root = metaClass.getErased();
     final Set<MetaClass> result = Collections.newSetFromMap(new ConcurrentHashMap<MetaClass, Boolean>());
 
-    final Future<?> factoryFuture = ThreadUtil.submit(new Runnable() {
-      @Override
-      public void run() {
-        for (final MetaClass mc : MetaClassFactory.getAllCachedClasses()) {
-          if (!NullType.class.getName().equals(mc.getFullyQualifiedName())
-              && !root.getFullyQualifiedName().equals(mc.getFullyQualifiedName())
-              && root.isAssignableFrom(mc)) {
-            result.add(mc.getErased());
-          }
-        }
-      }
-    });
+//    final Future<?> factoryFuture = ThreadUtil.submit(new Runnable() {
+//      @Override
+//      public void run() {
+//        for (final MetaClass mc : MetaClassFactory.getAllCachedClasses()) {
+//          if (!NullType.class.getName().equals(mc.getFullyQualifiedName())
+//              && !root.getFullyQualifiedName().equals(mc.getFullyQualifiedName())
+//              && root.isAssignableFrom(mc)) {
+//            result.add(mc.getErased());
+//          }
+//        }
+//      }
+//    });
 
     final Future<?> reflectionsFuture = ThreadUtil.submit(new Runnable() {
       @Override
       public void run() {
         final Class<?> cls = root.asClass();
         if (cls != null && !cls.equals(NullType.class)) {
-          for (final Class<?> c : ScannerSingleton.getOrCreateInstance().getSubTypesOf(cls)) {
+          for (final Class<?> c : ClassScanner.getScanner().getSubTypesOf(cls)) {
             if (!c.isAnonymousClass() && !c.isSynthetic()) {
               result.add(MetaClassFactory.get(c));
             }
@@ -184,7 +192,7 @@ public final class ClassScanner {
     }
 
     try {
-      factoryFuture.get();
+//      factoryFuture.get();
     }
     catch (Exception ignored) {
     }

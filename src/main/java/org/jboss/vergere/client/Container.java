@@ -18,13 +18,11 @@ package org.jboss.vergere.client;
 
 import org.jboss.vergere.client.container.IOCBeanManagerLifecycle;
 import org.jboss.vergere.util.IOCBootstrapMaker;
+import org.jboss.vergere.util.ThreadUtil;
 
 import java.lang.annotation.Annotation;
 
 public class Container {
-
-  // stored for debugging purposes only. overwritten every time the container is bootstrapped.
-  private static BootstrapperInjectionContext injectionContext;
 
   public void bootstrapContainer() {
     try {
@@ -32,14 +30,16 @@ public class Container {
 
       System.out.println("Vergere bootstrapper successfully initialized.");
 
+      long tm = System.currentTimeMillis();
       final Class<? extends Bootstrapper> bootstrapperClass = new IOCBootstrapMaker().generate();
 
       final Bootstrapper bootstrapper = bootstrapperClass.newInstance();
-      injectionContext = bootstrapper.bootstrapContainer();
-
-      System.out.println("Vergere container bootstrapped.");
-
+      BootstrapperInjectionContext injectionContext = bootstrapper.bootstrapContainer();
       injectionContext.getRootContext().finish();
+
+      ThreadUtil.stopExecutor();
+
+      System.out.println("Vergere container bootstrapped. (time: " + (System.currentTimeMillis() - tm) +  "ms)");
     }
     catch (Throwable t) {
       t.printStackTrace();

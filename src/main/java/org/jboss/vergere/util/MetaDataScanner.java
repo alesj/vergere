@@ -20,6 +20,7 @@ import org.jboss.errai.reflections.vfs.Vfs;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -56,7 +57,6 @@ import java.util.regex.Pattern;
 public class MetaDataScanner extends Reflections {
   public static final String CLASSPATH_ANCHOR_FILE = "vergere.properties";
 
-
   private static final PropertyScanner propScanner = new PropertyScanner(
       new Predicate<String>() {
         public boolean apply(String file) {
@@ -65,19 +65,26 @@ public class MetaDataScanner extends Reflections {
       }
   );
 
-  MetaDataScanner(List<URL> urls) {
+  MetaDataScanner(final List<URL> urls, File cacheFile) {
     super(getConfiguration(urls));
-    scan();
+
+    if (cacheFile != null) {
+      collect(cacheFile);
+    }
+    else {
+      scan();
+      save(VergereUtils.getCacheFile("reflections.cache").getAbsolutePath());
+    }
   }
 
-  private static final Map<String, Set<SortableClassFileWrapper>> annotationsToClassFile =
+  static final Map<String, Set<SortableClassFileWrapper>> annotationsToClassFile =
       new TreeMap<String, Set<SortableClassFileWrapper>>();
 
-  private static class SortableClassFileWrapper implements Comparable<SortableClassFileWrapper> {
+  static class SortableClassFileWrapper implements Comparable<SortableClassFileWrapper> {
     private String name;
     private ClassFile classFile;
 
-    private SortableClassFileWrapper(String name, ClassFile classFile) {
+    SortableClassFileWrapper(String name, ClassFile classFile) {
       this.name = name;
       this.classFile = classFile;
     }
@@ -99,34 +106,7 @@ public class MetaDataScanner extends Reflections {
         .setScanners(
             new FieldAnnotationsScanner(),
             new MethodAnnotationsScanner(),
-            new TypeAnnotationsScanner() {
-              @Override
-              public void scan(Object cls) {
-                @SuppressWarnings("unchecked")
-                MetadataAdapter adapter = getMetadataAdapter();
-
-                final String className = adapter.getClassName(cls);
-
-                // noinspection unchecked
-                for (String annotationType : (List<String>) adapter.getClassAnnotationNames(cls)) {
-                  if (acceptResult(annotationType) ||
-                      annotationType.equals(Inherited.class.getName())) { // as an exception, accept
-                    // Inherited as well
-                    getStore().put(annotationType, className);
-
-                    if (cls instanceof ClassFile) {
-                      Set<SortableClassFileWrapper> classes = annotationsToClassFile.get(annotationType);
-                      if (classes == null) {
-                        annotationsToClassFile.put(annotationType, classes =
-                            new TreeSet<SortableClassFileWrapper>());
-                      }
-                      classes.add(new SortableClassFileWrapper(className, (ClassFile) cls));
-                    }
-                  }
-                }
-
-              }
-            },
+            new ExtendedTypeAnnotationScanner(),
             propScanner
         );
 
@@ -141,7 +121,7 @@ public class MetaDataScanner extends Reflections {
 
     final DeploymentContext ctx = new DeploymentContext(urls);
     final List<URL> actualUrls = ctx.process();
-    final MetaDataScanner scanner = new MetaDataScanner(actualUrls);
+    final MetaDataScanner scanner = new MetaDataScanner(actualUrls, null);
     ctx.close(); // needs to closed after the scanner was created
 
     return scanner;
@@ -256,8 +236,8 @@ public class MetaDataScanner extends Reflections {
       final String[] targetRoots = {"", "META-INF/"};
       final List<URL> urls = new ArrayList<URL>();
 
-      for (int i = 0; i < targetRoots.length; i++) {
-        String scanTarget = targetRoots[i] + CLASSPATH_ANCHOR_FILE;
+      for (String targetRoot : targetRoots) {
+        String scanTarget = targetRoot + CLASSPATH_ANCHOR_FILE;
         final Enumeration<URL> configTargets = loader.getResources(scanTarget);
 
         while (configTargets.hasMoreElements()) {
@@ -305,7 +285,14 @@ public class MetaDataScanner extends Reflections {
   }
 
   public static List<URL> getConfigUrls() {
-    return getConfigUrls(MetaDataScanner.class.getClassLoader());
+    //  return getConfigUrls(MetaDataScanner.class.getClassLoader());
+
+    Set<URL> allUrls = new HashSet<URL>();
+    allUrls.addAll(getConfigUrls(Thread.currentThread().getContextClassLoader()));
+    allUrls.addAll(getConfigUrls(MetaDataScanner.class.getClassLoader()));
+    allUrls.addAll(getConfigUrls(ClassLoader.getSystemClassLoader()));
+
+    return new ArrayList<URL>(allUrls);
   }
 
   public Properties getProperties(String name) {

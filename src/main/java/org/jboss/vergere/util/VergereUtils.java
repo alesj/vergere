@@ -1,7 +1,6 @@
 package org.jboss.vergere.util;
 
 import com.google.common.io.Files;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,7 +9,11 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +54,12 @@ public class VergereUtils {
 
       md.update(hashSeed.getBytes());
 
-      for (final String p : classPath.split(System.getProperty("path.separator"))) {
+      final String[] split = classPath.split(System.getProperty("path.separator"));
+
+      final List<String> sortList = new ArrayList<String>(Arrays.asList(split));
+      Collections.sort(sortList);
+
+      for (final String p : sortList) {
         _recurseDir(new File(p), new FileVisitor() {
           @Override
           public void visit(final File f) {
@@ -85,6 +93,16 @@ public class VergereUtils {
     return fileCacheDir;
   }
 
+
+  public static File getCacheFile(final String name) {
+    return new File(getApplicationCacheDirectory(), name);
+  }
+
+  public static boolean cacheFileExists(final String name) {
+    final boolean exists = getCacheFile(name).exists();
+    return exists;
+  }
+
   private static boolean nocache = Boolean.getBoolean("vergere.nocache");
   private static Boolean _hasClasspathChanged;
 
@@ -99,11 +117,11 @@ public class VergereUtils {
     }
     else {
       final String fileHashValue = readFileToString(hashFile);
-      if (fileHashValue.equals(hashValue)) {
-        return _hasClasspathChanged = true;
-      }
-      else {
+
+      if (!fileHashValue.equals(hashValue)) {
         writeStringToFile(hashFile, hashValue);
+
+        return _hasClasspathChanged = true;
       }
     }
 
@@ -123,7 +141,6 @@ public class VergereUtils {
        */
       if (hasClasspathChangedForAnnotatedWith(a)) result = true;
     }
-
 
     return result;
   }

@@ -164,6 +164,10 @@ public class CompileUtil {
           }
         }
       }
+      else {
+        classOutputDir.mkdirs();
+      }
+
 
       final StringBuilder sb = new StringBuilder(4096);
       final List<URL> configUrls = MetaDataScanner.getConfigUrls();
@@ -203,13 +207,8 @@ public class CompileUtil {
         }
         return null;
       }
-//
-//      for (final byte b : errorOutputStream.toByteArray()) {
-//        System.out.print((char) b);
-//      }
 
-      return new File(classOutputDir.getAbsolutePath() + File.separatorChar
-          + className + ".class").getAbsolutePath();
+      return new File(classOutputDir, className + ".class").getAbsolutePath();
     }
     catch (Exception e) {
       throw new RuntimeException(e);
